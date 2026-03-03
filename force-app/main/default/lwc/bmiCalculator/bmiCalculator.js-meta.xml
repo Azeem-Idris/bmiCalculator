@@ -8,10 +8,11 @@
         <target>lightning__HomePage</target>
     </targets>
     <targetConfigs>
-        <targetConfig targets="lightning__RecordPage">
-            <objects>
-                <object>*</object>
-            </objects>
-        </targetConfig>
-    </targetConfigs>
+    <targetConfig targets="lightning__RecordPage">
+        <objects>
+            <object>Account</object>
+            <object>Contact</object>
+        </objects>
+    </targetConfig>
+</targetConfigs>
 </LightningComponentBundle>
