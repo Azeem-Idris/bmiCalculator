@@ -1,36 +1,25 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+{
+  "version": "0.2",
+  "words": [
+    "slds",
+    "slds-p-around_medium",
+    "slds-border_left",
+    "slds-border_right",
+    "slds-border_bottom",
+    "slds-border_top",
+    "slds-radius_small"
+  ]
+}<?xml version="1.0" encoding="UTF-8"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
-        <members>*</members>
+        <members>MyCustomObject__c</members>
+        <members>AnotherObject__c</members>
+        <name>CustomObject</name>
+    </types>
+    <types>
+        <members></members>
         <name>ApexClass</name>
     </types>
-    <types>
-        <members>*</members>
-        <name>ApexComponent</name>
-    </types>
-    <types>
-        <members>*</members>
-        <name>ApexPage</name>
-    </types>
-    <types>
-        <members>*</members>
-        <name>ApexTestSuite</name>
-    </types>
-    <types>
-        <members>*</members>
-        <name>ApexTrigger</name>
-    </types>
-    <types>
-        <members>*</members>
-        <name>AuraDefinitionBundle</name>
-    </types>
-    <types>
-        <members>*</members>
-        <name>LightningComponentBundle</name>
-    </types>
-    <types>
-        <members>*</members>
-        <name>StaticResource</name>
-    </types>
-    <version>65.0</version>
+    <!-- you can still use * for LightningComponentBundle, StaticResource, etc. -->
+    <version>57.0</version>
 </Package>

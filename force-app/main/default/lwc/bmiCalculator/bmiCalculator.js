@@ -1,4 +1,4 @@
-import { LightningElement, track } from 'lwc';
+import { LightningElement } from 'lwc';
 
 const UNIT = {
     METRIC: 'METRIC',
@@ -6,87 +6,86 @@ const UNIT = {
 };
 
 export default class BmiCalculator extends LightningElement {
-    @track unit = UNIT.METRIC;
+    unit = UNIT.METRIC;
 
     // Metric inputs
-    @track weightKg = null;
-    @track heightCm = null;
+    weightKg = null;
+    heightCm = null;
 
     // Imperial inputs
-    @track weightLb = null;
-    @track heightIn = null;
+    weightLb = null;
+    heightIn = null;
 
-    @track errorMessage = '';
+    errorMessage = '';
 
-    // Handlers: unit toggle
+    // -- unit toggles ------------------------------------------------------
     handleMetric() {
-        if (this.unit !== UNIT.METRIC) {
-            this.unit = UNIT.METRIC;
-            // Clear imperial inputs when switching to keep state clean
-            this.weightLb = null;
-            this.heightIn = null;
-            this.errorMessage = '';
+        if (this.unit === UNIT.METRIC) {
+            return;
         }
+        this.unit = UNIT.METRIC;
+        this._resetImperial();
+        this._validate();
     }
 
     handleImperial() {
-        if (this.unit !== UNIT.IMPERIAL) {
-            this.unit = UNIT.IMPERIAL;
-            // Clear metric inputs when switching to keep state clean
-            this.weightKg = null;
-            this.heightCm = null;
-            this.errorMessage = '';
+        if (this.unit === UNIT.IMPERIAL) {
+            return;
         }
-    }
-
-    // Input handlers
-    handleWeightKgChange(event) {
-        this.weightKg = this._toNumberOrNull(event.target.value);
+        this.unit = UNIT.IMPERIAL;
+        this._resetMetric();
         this._validate();
     }
 
-    handleHeightCmChange(event) {
-        this.heightCm = this._toNumberOrNull(event.target.value);
+    // -- input handlers ---------------------------------------------------
+    handleWeightKgChange(e) {
+        this.weightKg = this._toNumberOrNull(e.target.value);
         this._validate();
     }
 
-    handleWeightLbChange(event) {
-        this.weightLb = this._toNumberOrNull(event.target.value);
+    handleHeightCmChange(e) {
+        this.heightCm = this._toNumberOrNull(e.target.value);
         this._validate();
     }
 
-    handleHeightInChange(event) {
-        this.heightIn = this._toNumberOrNull(event.target.value);
+    handleWeightLbChange(e) {
+        this.weightLb = this._toNumberOrNull(e.target.value);
+        this._validate();
+    }
+
+    handleHeightInChange(e) {
+        this.heightIn = this._toNumberOrNull(e.target.value);
         this._validate();
     }
 
     handleClear() {
-        this.weightKg = null;
-        this.heightCm = null;
-        this.weightLb = null;
-        this.heightIn = null;
+        this._resetMetric();
+        this._resetImperial();
         this.errorMessage = '';
+        this._validate();
     }
 
-    // Validation
+    // -- validation --------------------------------------------------------
     _validate() {
         this.errorMessage = '';
         if (this.unit === UNIT.METRIC) {
             if (this.weightKg !== null && this.weightKg <= 0) {
                 this.errorMessage = 'Weight (kg) must be greater than 0';
-            } else if (this.heightCm !== null && this.heightCm <= 0) {
+            }
+            if (!this.errorMessage && this.heightCm !== null && this.heightCm <= 0) {
                 this.errorMessage = 'Height (cm) must be greater than 0';
             }
         } else {
             if (this.weightLb !== null && this.weightLb <= 0) {
                 this.errorMessage = 'Weight (lb) must be greater than 0';
-            } else if (this.heightIn !== null && this.heightIn <= 0) {
+            }
+            if (!this.errorMessage && this.heightIn !== null && this.heightIn <= 0) {
                 this.errorMessage = 'Height (in) must be greater than 0';
             }
         }
     }
 
-    // Computed state
+    // -- computed state ----------------------------------------------------
     get isMetric() {
         return this.unit === UNIT.METRIC;
     }
@@ -99,8 +98,12 @@ export default class BmiCalculator extends LightningElement {
         return this.isMetric ? 'neutral' : 'brand';
     }
 
+    get hasError() {
+        return !!this.errorMessage;
+    }
+
     get bmi() {
-        if (this.errorMessage) {
+        if (this.hasError) {
             return null;
         }
         if (this.isMetric) {
@@ -108,21 +111,23 @@ export default class BmiCalculator extends LightningElement {
                 return null;
             }
             const heightM = this.heightCm / 100;
-            if (!heightM) return null;
-            const val = this.weightKg / (heightM * heightM);
-            return this._round(val, 1);
+            if (heightM <= 0) {
+                return null;
+            }
+            return this._round(this.weightKg / (heightM * heightM), 1);
         } else {
             if (this.weightLb == null || this.heightIn == null) {
                 return null;
             }
-            if (!this.heightIn) return null;
-            const val = (703 * this.weightLb) / (this.heightIn * this.heightIn);
-            return this._round(val, 1);
+            if (this.heightIn <= 0) {
+                return null;
+            }
+            return this._round((703 * this.weightLb) / (this.heightIn * this.heightIn), 1);
         }
     }
 
     get hasBmi() {
-        return this.bmi !== null && !isNaN(this.bmi);
+        return typeof this.bmi === 'number';
     }
 
     get bmiDisplay() {
@@ -131,37 +136,41 @@ export default class BmiCalculator extends LightningElement {
 
     get category() {
         const b = this.bmi;
-        if (b == null || isNaN(b)) return '';
+        if (b == null) {
+            return '';
+        }
         if (b < 18.5) return 'Underweight';
         if (b < 25) return 'Normal weight';
         if (b < 30) return 'Overweight';
         return 'Obesity';
     }
 
-    // Rather than inline styles that may trigger template CSS parsing, keep style string simple
     get resultClass() {
-    let base = 'result slds-p-around_medium slds-border_left slds-border_right slds-border_bottom slds-border_top slds-radius_small';
+        let base =
+            'result slds-p-around_medium slds-border_left slds-border_right ' +
+            'slds-border_bottom slds-border_top slds-radius_small';
 
-    if (!this.hasBmi) {
-        return base;
+        if (!this.hasBmi) {
+            return base;
+        }
+
+        switch (this.category) {
+            case 'Underweight':
+                return base + ' underweight';
+            case 'Normal weight':
+                return base + ' normal';
+            case 'Overweight':
+                return base + ' overweight';
+            default:
+                return base + ' obesity';
+        }
     }
 
-    if (this.category === 'Underweight') {
-        return base + ' underweight';
-    }
-    if (this.category === 'Normal weight') {
-        return base + ' normal';
-    }
-    if (this.category === 'Overweight') {
-        return base + ' overweight';
-    }
-
-    return base + ' obesity';
-}
-
-    // Utils
+    // -- helpers -----------------------------------------------------------
     _toNumberOrNull(val) {
-        if (val === '' || val === null || val === undefined) return null;
+        if (val == null || val === '') {
+            return null;
+        }
         const n = Number(val);
         return isNaN(n) ? null : n;
     }
@@ -169,5 +178,15 @@ export default class BmiCalculator extends LightningElement {
     _round(n, digits) {
         const pow = Math.pow(10, digits);
         return Math.round(n * pow) / pow;
+    }
+
+    _resetMetric() {
+        this.weightKg = null;
+        this.heightCm = null;
+    }
+
+    _resetImperial() {
+        this.weightLb = null;
+        this.heightIn = null;
     }
 }
