@@ -1,0 +1,23 @@
+.result {
+    transition: background-color 0.2s ease-in-out;
+}
+
+.result {
+    transition: background-color 0.2s ease-in-out;
+}
+
+.result.underweight {
+    background-color: #e3f2fd;
+}
+
+.result.normal {
+    background-color: #e8f5e9;
+}
+
+.result.overweight {
+    background-color: #fff8e1;
+}
+
+.result.obesity {
+    background-color: #ffebee;
+}
